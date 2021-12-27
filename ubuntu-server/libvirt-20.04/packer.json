@@ -1,0 +1,88 @@
+{
+  "variables": {
+    "name": "ubuntu-20.04-server",
+    "version": "0.1.0",
+    "cpu": "1",
+    "ram": "2048",
+    "disk_size": "8192",
+    "iso_url": "http://releases.ubuntu.com/20.04.3/ubuntu-20.04.3-live-server-amd64.iso",
+    "iso_checksum": "f8e3086f3cea0fb3fefb29937ab5ed9d19e767079633960ccb50e76153effc98",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant"
+  },
+  "builders": [
+    {
+      "type": "qemu",
+      "format": "qcow2",
+      "accelerator": "kvm",
+      "headless": true,
+
+      "qemu_binary": "qemu-system-x86_64",
+      "qemuargs": [[ "-m", "{{user `ram`}}M" ],[ "-smp", "{{user `cpu`}}" ]],
+
+      "disk_interface": "virtio",
+      "disk_cache": "none",
+      "disk_compression": true,
+      "disk_image": false,
+      "disk_size": "{{user `disk_size`}}",
+
+      "net_device": "virtio-net",
+
+      "iso_url": "{{user `iso_url`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+
+      "boot_wait": "1s",
+      "boot_command": [
+        "<wait><enter><esc><wait5><f6><esc><wait>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs>",
+        "/casper/vmlinuz <wait>",
+        "initrd=/casper/initrd <wait>",        
+        "autoinstall quiet fsck.mode=skip <wait>",
+        "net.ifnames=0 biosdevname=0 systemd.unified_cgroup_hierarchy=0 <wait>",
+        "ds=nocloud-net;s=http://{{.HTTPIP}}:{{.HTTPPort}}/",
+        "<enter>"
+      ],
+      
+      "http_directory": ".",
+
+      "ssh_wait_timeout": "45m",
+      "ssh_username": "{{user `ssh_username`}}",
+      "ssh_password": "{{user `ssh_password`}}",
+      "ssh_port": 22,
+
+      "vnc_bind_address": "0.0.0.0",
+      "vnc_port_max": 6000,
+      "vnc_port_min": 5900,
+
+      "shutdown_command": "sudo shutdown -h now"
+    }
+  ],
+  "post-processors": [
+    {
+      "compression_level": 9,
+      "keep_input_artifact": false,
+      "output": "builds/package.box",
+      "provider_override": "libvirt",
+      "type": "vagrant"
+    }
+  ],
+  "provisioners": [  
+    {
+      "type": "shell",      
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+      "expect_disconnect": true,
+      "scripts": [
+          "scripts/cleanup.sh",
+          "scripts/minimize.sh"
+      ]      
+    }    
+  ]
+}
