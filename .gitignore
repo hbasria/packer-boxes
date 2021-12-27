@@ -1,4 +1,5 @@
 # Cache objects
+*.vagrant/
 packer_cache/
 
 # Crash log
