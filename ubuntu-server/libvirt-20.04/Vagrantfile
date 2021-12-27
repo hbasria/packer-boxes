@@ -15,8 +15,7 @@ Vagrant.configure("2") do |config|
     end    
 
     config.vm.define "node" do |n|
-        #n.vm.box = "hbasria/ubuntu-20.04-server"
-        n.vm.box = "builds/package.box"
+        n.vm.box = "hbasria/ubuntu-20.04-server"
     end  
   
   end
